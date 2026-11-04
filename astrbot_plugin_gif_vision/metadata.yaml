@@ -1,0 +1,31 @@
+name: astrbot_plugin_gif_vision
+display_name: 看动图
+short_desc: 抽帧理解 QQ GIF，回传「我会永远陪着你」，并持久化动图库
+desc: >-
+  让 AstrBot 真正看懂 QQ 里的 GIF：抽帧交给视觉模型生成描述，优先作为
+  ContextContribution 回传给“我会永远陪着你”，未安装时直接注入主 LLM；
+  同时保存原始 GIF、描述、向量和视觉指纹，提供 WebUI 动图库、语义搜索、
+  /gifsend 发送和去重缓存。
+version: 0.1.0
+author: deepseek-harness
+repo: ""
+astrbot_version: ">=4.28.0,<5"
+support_platforms:
+  - aiocqhttp
+category: AI 增强
+help: >-
+  WebUI → 插件 → 看动图 → 动图库；QQ 命令：/gif、/gifsearch、/gifsend、
+  /gifstats、/gifforget、/gifimport。
+tags:
+  - 动图
+  - GIF
+  - 视觉
+  - 向量
+  - WebUI
+i18n:
+  zh-CN:
+    pages:
+      gif_library: 动图库
+  en-US:
+    pages:
+      gif_library: GIF Library

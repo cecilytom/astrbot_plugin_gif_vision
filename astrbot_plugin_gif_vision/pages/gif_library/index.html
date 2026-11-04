@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>动图库</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="title-block">
+        <h1>动图库</h1>
+        <p class="subtitle">
+          抽帧看懂 GIF · 自动保存 · 语义检索 · 回传「我会永远陪着你」
+        </p>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="btn-health" class="btn ghost" title="检查视觉/向量服务">
+          健康检查
+        </button>
+        <button type="button" id="btn-rebuild" class="btn ghost" title="为缺失向量的记录补向量">
+          重建缺失向量
+        </button>
+        <button type="button" id="btn-export" class="btn ghost" title="导出 JSON 元数据">
+          导出
+        </button>
+        <button type="button" id="btn-import" class="btn primary" title="从本地导入 GIF">
+          导入动图
+        </button>
+        <input id="file-input" type="file" accept="image/gif,image/webp,image/apng,image/png" hidden />
+      </div>
+    </header>
+
+    <section class="stats" aria-label="动图库统计">
+      <div class="stat-card">
+        <span class="stat-label">动图总数</span>
+        <strong id="stat-total">-</strong>
+        <span class="stat-hint" id="stat-root">·</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">磁盘占用</span>
+        <strong id="stat-disk">-</strong>
+        <span class="stat-hint" id="stat-db">·</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">向量覆盖</span>
+        <strong id="stat-vectors">-</strong>
+        <span class="stat-hint" id="stat-missing">·</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">陪伴插件</span>
+        <strong id="stat-companion">-</strong>
+        <span class="stat-hint" id="stat-model">·</span>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="检索与筛选">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input
+          id="search-input"
+          type="search"
+          placeholder="搜索描述，例如：跑步机 吃东西 / 无语 盯人"
+          autocomplete="off"
+        />
+      </div>
+      <label class="check" title="有向量时用余弦检索，否则自动降级 LIKE">
+        <input id="semantic-toggle" type="checkbox" checked />
+        语义检索
+      </label>
+      <label class="check" title="只看还没有向量的记录">
+        <input id="missing-toggle" type="checkbox" />
+        只看缺向量
+      </label>
+      <select id="sort-select" aria-label="排序">
+        <option value="recent">最近使用</option>
+        <option value="newest">最新保存</option>
+        <option value="oldest">最旧保存</option>
+        <option value="uses">使用最多</option>
+        <option value="size">体积最大</option>
+      </select>
+      <button type="button" id="btn-refresh" class="btn ghost" title="刷新">刷新</button>
+    </section>
+
+    <p class="mode-hint" id="mode-hint" role="status"></p>
+
+    <main>
+      <section id="grid" class="grid" aria-live="polite"></section>
+      <div id="empty" class="empty" hidden>
+        <div class="empty-icon" aria-hidden="true">🖼</div>
+        <h2>还没有保存的动图</h2>
+        <p>在 QQ 里发一张 GIF，或点击右上角「导入动图」开始建立你的动图库。</p>
+      </div>
+      <div id="loading" class="loading" hidden>加载中…</div>
+    </main>
+
+    <nav class="pagination" id="pagination" aria-label="分页" hidden>
+      <button type="button" id="page-prev" class="btn ghost">上一页</button>
+      <span id="page-info">1 / 1</span>
+      <button type="button" id="page-next" class="btn ghost">下一页</button>
+    </nav>
+
+    <dialog id="detail" class="detail-dialog">
+      <div class="detail-shell">
+        <header class="detail-header">
+          <div>
+            <h2 id="detail-title">动图详情</h2>
+            <p id="detail-sub" class="subtitle"></p>
+          </div>
+          <button type="button" id="detail-close" class="icon-btn" aria-label="关闭">×</button>
+        </header>
+        <div class="detail-body">
+          <div class="detail-preview">
+            <img id="detail-image" alt="动图预览" />
+            <p id="detail-preview-note" class="hint"></p>
+          </div>
+          <div class="detail-info">
+            <p id="detail-description" class="detail-description"></p>
+            <dl class="meta" id="detail-meta"></dl>
+            <div class="detail-actions">
+              <button type="button" id="btn-copy-command" class="btn primary">复制发送指令</button>
+              <button type="button" id="btn-download" class="btn ghost">下载原图</button>
+              <button type="button" id="btn-redescribe" class="btn ghost">重新描述</button>
+              <button type="button" id="btn-delete" class="btn danger">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

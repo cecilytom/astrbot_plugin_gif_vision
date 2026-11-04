@@ -1,0 +1,253 @@
+{
+  "enable": {
+    "description": "启用动图识别",
+    "type": "bool",
+    "default": true,
+    "hint": "关闭后插件不介入任何请求，也不处理命令。"
+  },
+  "provider_id": {
+    "description": "视觉 provider ID",
+    "type": "string",
+    "default": "",
+    "hint": "留空使用当前对话 provider；必须支持图片输入。可填 Gemini / 其他多模态 provider 的 ID。"
+  },
+  "fallback_provider_ids": {
+    "description": "备用视觉 provider",
+    "type": "list",
+    "items": {"type": "string"},
+    "default": [],
+    "hint": "当前 provider 不支持图片时按顺序尝试。"
+  },
+  "embedding_provider_id": {
+    "description": "向量 provider ID",
+    "type": "string",
+    "default": "",
+    "hint": "留空使用第一个可用的 embedding provider。当前环境通常是 openai_embedding / BAAI/bge-m3。"
+  },
+  "embedding_enabled": {
+    "description": "启用向量检索",
+    "type": "bool",
+    "default": true,
+    "hint": "关闭后仍保存描述和原图，但 WebUI/命令搜索降级为关键词 LIKE。"
+  },
+  "return_to_companion": {
+    "description": "优先回传“我会永远陪着你”",
+    "type": "bool",
+    "default": true,
+    "hint": "启用时通过陪伴插件的 add_context_contribution 扩展协议提交 scene 上下文；不可用时自动回退直接注入主 LLM。"
+  },
+  "companion_source_id": {
+    "description": "陪伴扩展 ID",
+    "type": "string",
+    "default": "gif_vision",
+    "hint": "注册到陪伴插件控制面和 ContextContribution 的 source_id；只允许小写字母、数字、下划线、点和短横线。"
+  },
+  "companion_lane": {
+    "description": "回传 lane",
+    "type": "string",
+    "default": "scene",
+    "options": ["scene", "memory"],
+    "labels": ["scene（当前画面）", "memory（记忆片段）"],
+    "hint": "scene 适合“用户刚发来一张动图”；memory 会作为更长期的经验素材。"
+  },
+  "companion_priority": {
+    "description": "回传优先级",
+    "type": "int",
+    "default": 55,
+    "hint": "ContextContribution 在陪伴注入计划内的优先级，范围 -100000 到 100000。"
+  },
+  "companion_max_age_seconds": {
+    "description": "回传有效期（秒）",
+    "type": "int",
+    "default": 900,
+    "hint": "超过该时间的贡献视为过期；0 表示不限制。"
+  },
+  "companion_hook_priority": {
+    "description": "回传钩子优先级（代码已固定）",
+    "type": "int",
+    "default": -259500,
+    "hint": "预留字段。实际装饰器优先级固定为 -259500（陪伴插件在 -260000 冻结注入计划）；修改本值不会改变运行顺序。"
+  },
+  "companion_register_extension": {
+    "description": "注册陪伴扩展控制面",
+    "type": "bool",
+    "default": true,
+    "hint": "启动时调用 register_extension，使 /page/extensions/status 能看到 gif_vision。"
+  },
+  "max_gifs_per_message": {
+    "description": "单条消息最多处理动图数",
+    "type": "int",
+    "default": 2,
+    "hint": "范围 1-5；超出的动图不处理。"
+  },
+  "frame_count": {
+    "description": "抽帧数",
+    "type": "int",
+    "default": 6,
+    "hint": "范围 2-9；均匀取样并包含首尾帧。6 帧在理解动作和控制 token 之间较均衡。"
+  },
+  "frame_max_edge": {
+    "description": "单帧最长边（像素）",
+    "type": "int",
+    "default": 768,
+    "hint": "越大越清晰但 token 越多；范围 64-2048。"
+  },
+  "max_gif_mb": {
+    "description": "最大动图体积（MB）",
+    "type": "float",
+    "default": 15.0,
+    "hint": "超过的动图跳过，避免下载/解码/上传过大文件。"
+  },
+  "vision_timeout_sec": {
+    "description": "视觉调用超时（秒）",
+    "type": "float",
+    "default": 25.0,
+    "hint": "单张动图整体超时；超时会回退到核心/陪伴插件自己的图片处理。"
+  },
+  "max_output_chars": {
+    "description": "描述最大字符数",
+    "type": "int",
+    "default": 1200,
+    "hint": "超过后按句子截断，避免污染上下文。"
+  },
+  "vision_with_question": {
+    "description": "把用户问题带给视觉模型",
+    "type": "bool",
+    "default": true,
+    "hint": "开启后用户随图提问会得到针对性回答；关闭则只输出通用描述。"
+  },
+  "vision_describe_prompt": {
+    "description": "通用描述提示词",
+    "type": "string",
+    "default": "",
+    "hint": "留空使用内置中文提示词；不要删除“主体/动作/文字/表达意图”的要求。"
+  },
+  "vision_qa_prompt": {
+    "description": "带问题提示词模板",
+    "type": "string",
+    "default": "",
+    "hint": "留空使用内置模板；模板中的 {question} 会被用户问题替换。"
+  },
+  "session_scope": {
+    "description": "生效会话范围",
+    "type": "string",
+    "default": "all",
+    "options": ["all", "group", "private"],
+    "labels": ["全部", "仅群聊", "仅私聊"],
+    "hint": "如果只想在群聊补足动图识别，可设为 group。"
+  },
+  "skip_if_existing_description": {
+    "description": "已有图片描述时跳过",
+    "type": "bool",
+    "default": true,
+    "hint": "检测到核心 image_caption、陪伴插件视觉摘要或 gif_vision 标记时不重复处理。"
+  },
+  "keep_original_image": {
+    "description": "独立模式下保留原动图",
+    "type": "bool",
+    "default": false,
+    "hint": "仅在陪伴插件不可用、直接注入主 LLM 时生效；保留原图会让主模型同时看到拼图和文字描述。"
+  },
+  "handle_mface": {
+    "description": "兜底解析 QQ 商城表情",
+    "type": "bool",
+    "default": true,
+    "hint": "当 NapCat 没有把 mface 转成 image 时，按 emoji_id 还原 raw300.gif 地址再尝试识别。"
+  },
+  "library_enable": {
+    "description": "启用持久化动图库",
+    "type": "bool",
+    "default": true,
+    "hint": "保存原始 GIF、缩略图、描述和向量；关闭后只能做一次性识别，WebUI 库页不可用。"
+  },
+  "library_dir": {
+    "description": "动图库目录",
+    "type": "string",
+    "default": "",
+    "hint": "留空使用 data/plugin_data/astrbot_plugin_gif_vision；相对路径基于 plugin_data。"
+  },
+  "library_max_mb": {
+    "description": "动图库磁盘上限（MB）",
+    "type": "float",
+    "default": 512.0,
+    "hint": "超过后按最久未使用淘汰原图和缩略图。"
+  },
+  "retention_days": {
+    "description": "保留天数",
+    "type": "int",
+    "default": 0,
+    "hint": "0 表示不按时间过期；大于 0 时启动和入库后清理旧记录。"
+  },
+  "near_duplicate_hamming": {
+    "description": "近似动图阈值",
+    "type": "int",
+    "default": 12,
+    "hint": "pHash 汉明距离，范围 0-192；0 表示不做近似复用，越小越严格。"
+  },
+  "near_duplicate_store": {
+    "description": "近似图也保存原文件",
+    "type": "bool",
+    "default": true,
+    "hint": "关闭后近似图只复用已有描述，不新增文件记录。"
+  },
+  "search_top_k": {
+    "description": "检索返回条数",
+    "type": "int",
+    "default": 5,
+    "hint": "范围 1-20。"
+  },
+  "search_min_score": {
+    "description": "发送时最低相似度",
+    "type": "float",
+    "default": 0.55,
+    "hint": "范围 0-1；低于该分数的语义检索结果不会被 /gifsend 直接采用。"
+  },
+  "vector_search_max_rows": {
+    "description": "余弦检索最大行数",
+    "type": "int",
+    "default": 5000,
+    "hint": "超过后只加载最近使用的前 N 条，避免大库检索过慢。"
+  },
+  "send_max_mb": {
+    "description": "/gifsend 大小上限（MB）",
+    "type": "float",
+    "default": 15.0,
+    "hint": "超过 QQ/NapCat 上传限制的动图不发送。"
+  },
+  "max_concurrent": {
+    "description": "并发处理动图数",
+    "type": "int",
+    "default": 2,
+    "hint": "范围 1-8；控制同时进行的视觉调用/抽帧。"
+  },
+  "webui_page_size": {
+    "description": "WebUI 每页卡片数",
+    "type": "int",
+    "default": 24,
+    "hint": "范围 1-50。"
+  },
+  "webui_thumb_edge": {
+    "description": "WebUI 缩略图最长边",
+    "type": "int",
+    "default": 320,
+    "hint": "2x2 拼图缩略图，范围 64-1024。"
+  },
+  "webui_preview_max_mb": {
+    "description": "WebUI 内联预览上限（MB）",
+    "type": "float",
+    "default": 4.0,
+    "hint": "超过后详情页只显示缩略图和下载按钮，避免 base64 卡死页面。"
+  },
+  "webui_import_enable": {
+    "description": "允许 WebUI 导入动图",
+    "type": "bool",
+    "default": true,
+    "hint": "从 WebUI 上传 GIF 并走同一套描述/入库流程。"
+  },
+  "debug_log": {
+    "description": "调试日志",
+    "type": "bool",
+    "default": false,
+    "hint": "打印回传/移除引用等细节；不会默认打印完整描述正文。"
+  }
+}
